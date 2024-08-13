@@ -39,7 +39,7 @@ jobs:
     - name: Pack
       run: dotnet pack
     - name: Publish NuGet package
-      uses: Smaug123/publish-nuget-action@2f32cbf1033bd2fe5f35910e24952d96ea064fa6
+      uses: Smaug123/publish-nuget-action@1d8d5ee1b6adf82fc91193fdf41529e481b1c5a7
       with:
         package-name: WoofWare.Test.Thing
         nuget-key: ${{ secrets.NUGET_API_KEY }}
