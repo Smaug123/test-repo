@@ -1,0 +1,40 @@
+name: .NET
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  NUGET_XMLDOC_MODE: ''
+  DOTNET_MULTILEVEL_LOOKUP: 0
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        config:
+          - Release
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore --configuration ${{matrix.config}}
+    - name: Test
+      run: dotnet test --no-build --verbosity normal --configuration ${{matrix.config}}
+    - name: Pack
+      run: dotnet pack
+    - name: Publish NuGet package
+      uses: Smaug123/publish-nuget-action@b85440064edd390f66b752f2e4050c7557ba01a6
+      with:
+        package-name: WoofWare.Test.Thing
+        nuget-key: ${{ secrets.NUGET_API_KEY }}
+        nupkg-dir: bin/Release/
