@@ -19,9 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      id-token: write
-      attestations: write
-      contents: read
+      contents: write
 
     steps:
     - uses: actions/checkout@v4
@@ -33,9 +31,10 @@ jobs:
       run: dotnet test --no-build --verbosity normal --configuration Release
     - name: Pack
       run: dotnet pack
-    - name: Publish NuGet package
-      uses: Smaug123/gr-common-actions/publish-nuget@417df35978822a71622a4ccfd84a1cad3fbf33b8
+    - name: Tag
+      run: git tag My-First-Release-1 && git push --tags
+    - name: GitHub release
+      uses: Smaug123/gr-common-actions/github-release@23b2ad93d4300ef78f6fa559d77d832dcc118b87
       with:
-        package-name: WoofWare.Test.Thing
-        nuget-key: ${{ secrets.NUGET_API_KEY }}
-        nupkg-dir: bin/Release/
+        tag: My-First-Release-2
+        github-token: ${{ secrets.GITHUB_TOKEN }}
