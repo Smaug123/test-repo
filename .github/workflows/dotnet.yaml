@@ -32,9 +32,9 @@ jobs:
     - name: Pack
       run: dotnet pack
     - name: Tag
-      run: git tag My-First-Release-4 && git push --tags --force
+      run: git tag My-First-Release-5 && git push --tags --force
     - name: GitHub release
-      uses: Smaug123/gr-common-actions/github-release@05c5ea50cac99ed5c8e2d1cf67251f8996938223
+      uses: Smaug123/gr-common-actions/github-release@e80e601862cc4c7a2f8ff35fabf1d22f65c1c1c0
       with:
-        tag: My-First-Release-4
+        tag: My-First-Release-5
         github-token: ${{ secrets.GITHUB_TOKEN }}
