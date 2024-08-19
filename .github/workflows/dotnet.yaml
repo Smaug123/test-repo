@@ -17,9 +17,16 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # If generate-release-notes is true then you must pass `target-commitish`. This is apparently undocumented.
+        generate: [true, false]
+        tag-exists: [true, false]
+        explicit-commitish: ["${{ github.event.pull_request.head.sha }}", ""]
 
     permissions:
       contents: write
+      actions: write
 
     steps:
     - uses: actions/checkout@v4
@@ -32,11 +39,21 @@ jobs:
     - name: Pack
       run: dotnet pack
     - name: Tag
-      run: git tag My-First-Release-this-works-2 && git push --tags --force
+      id: tag
+      env:
+        TAG_EXISTS: ${{ matrix.tag-exists }}
+      run: |
+        TAG_NAME=$(basename $(mktemp -t tmp.XXXXXXXX))
+        if [[ "$TAG_EXISTS" = "true" ]]; then
+          git tag "$TAG_NAME" && git push --tags --force
+        fi
+        echo "tag=$TAG_NAME" >> "$GITHUB_OUTPUT"
+
     - name: GitHub release
-      uses: Smaug123/gr-common-actions/github-release@1bdca07e61e655db37544bd5a641fef71a4c18b9
+      if: ${{ matrix.generate == false || matrix.explicit-commitish }}
+      uses: Smaug123/gr-common-actions/github-release@6ddb72cc82101f343017ec040a1a1f53fbb91d6d
       with:
-        tag: My-First-Release-this-works-2
+        tag: ${{ steps.tag.outputs.tag }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        target-commitish: ${{ github.event.pull_request.head.sha }}
-        generate-release-notes: true
+        target-commitish: ${{ matrix.explicit-commitish }}
+        generate-release-notes: ${{ matrix.generate }}
