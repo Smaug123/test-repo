@@ -32,7 +32,7 @@ jobs:
     - name: Pack
       run: dotnet pack
     - name: Tag
-      run: git tag My-First-Release-1 && git push --tags
+      run: git tag My-First-Release-1 && git push --tags --force
     - name: GitHub release
       uses: Smaug123/gr-common-actions/github-release@23b2ad93d4300ef78f6fa559d77d832dcc118b87
       with:
