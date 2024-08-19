@@ -38,3 +38,4 @@ jobs:
       with:
         tag: My-First-Release-5
         github-token: ${{ secrets.GITHUB_TOKEN }}
+        target-commitish: main
