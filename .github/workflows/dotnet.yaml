@@ -70,10 +70,9 @@ jobs:
       id: attestation-bundle
       env:
         GH_TOKEN: ${{ github.token }}
-        ATT_OUTPUT: /tmp/attestation-Lib.fs
-      run: |
-        gh attestation download Lib.fs -R "${{ github.repository }}" > "$ATT_OUTPUT"
-        echo "outfile=$ATT_OUTPUT" >> "$GITHUB_OUTPUT"
+        ATT_OUTPUT: /tmp/attestation-Lib.fs.jsonl
+        GH_REPOSITORY: ${{ github.repository }}
+      run: bash ./.github/workflows/gh-attestation.sh
 
     - name: Release attestation
       uses: Smaug123/gr-common-actions/github-release@af3982c7a9fb6f1b3ff926b0906d0bdf72b1da9d
