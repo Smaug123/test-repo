@@ -17,15 +17,23 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # If generate-release-notes is true then you must pass `target-commitish`. This is apparently undocumented.
+        generate: [false]
+        tag-exists: [false]
+        explicit-commitish: ["${{ github.event.pull_request.head.sha }}"]
 
     permissions:
       id-token: write
       attestations: write
-      contents: read
+      contents: write
+      actions: write
 
     steps:
     - uses: actions/checkout@v4
     - name: Restore dependencies
+      if: always()
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore --configuration Release
@@ -33,9 +41,44 @@ jobs:
       run: dotnet test --no-build --verbosity normal --configuration Release
     - name: Pack
       run: dotnet pack
-    - name: Publish NuGet package
-      uses: Smaug123/gr-common-actions/publish-nuget@417df35978822a71622a4ccfd84a1cad3fbf33b8
+    - name: Tag
+      id: tag
+      env:
+        TAG_EXISTS: ${{ matrix.tag-exists }}
+      run: |
+        TAG_NAME=$(basename $(mktemp -t tmp.XXXXXXXX))
+        if [[ "$TAG_EXISTS" = "true" ]]; then
+          git tag "$TAG_NAME" && git push --tags --force
+        fi
+        echo "tag=$TAG_NAME" >> "$GITHUB_OUTPUT"
+
+    - name: GitHub release
+      if: ${{ matrix.generate == false || matrix.explicit-commitish }}
+      uses: Smaug123/gr-common-actions/github-release@af3982c7a9fb6f1b3ff926b0906d0bdf72b1da9d
       with:
-        package-name: WoofWare.Test.Thing
-        nuget-key: ${{ secrets.NUGET_API_KEY }}
-        nupkg-dir: bin/Release/
+        tag: ${{ steps.tag.outputs.tag }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        target-commitish: ${{ matrix.explicit-commitish }}
+        generate-release-notes: ${{ matrix.generate }}
+
+    - name: Create GitHub attestation
+      uses: actions/attest-build-provenance@897ed5eab6ed058a474202017ada7f40bfa52940 # v1.0.0 
+      with:
+        subject-path: "Lib.fs"
+
+    - name: Create bundle
+      id: attestation-bundle
+      env:
+        GH_TOKEN: ${{ github.token }}
+        ATT_OUTPUT: /tmp/attestation-Lib.fs.jsonl
+        GH_REPOSITORY: ${{ github.repository }}
+      run: bash ./.github/workflows/gh-attestation.sh
+
+    - name: Release attestation
+      uses: Smaug123/gr-common-actions/github-release@af3982c7a9fb6f1b3ff926b0906d0bdf72b1da9d
+      with:
+        tag: ${{ steps.tag.outputs.tag }}
+        target-commitish: ${{ matrix.explicit-commitish }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        generate-release-notes: false
+        binary-contents: ${{ steps.attestation-bundle.outputs.outfile }}
