@@ -20,11 +20,13 @@ jobs:
     strategy:
       matrix:
         # If generate-release-notes is true then you must pass `target-commitish`. This is apparently undocumented.
-        generate: [true, false]
-        tag-exists: [true, false]
-        explicit-commitish: ["${{ github.event.pull_request.head.sha }}", ""]
+        generate: [false]
+        tag-exists: [false]
+        explicit-commitish: ["${{ github.event.pull_request.head.sha }}"]
 
     permissions:
+      id-token: write
+      attestations: write
       contents: write
       actions: write
 
@@ -52,9 +54,32 @@ jobs:
 
     - name: GitHub release
       if: ${{ matrix.generate == false || matrix.explicit-commitish }}
-      uses: Smaug123/gr-common-actions/github-release@6ddb72cc82101f343017ec040a1a1f53fbb91d6d
+      uses: Smaug123/gr-common-actions/github-release@5590e3d69c97b98b7af2b807e3514a914ded4ca4
       with:
         tag: ${{ steps.tag.outputs.tag }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
         target-commitish: ${{ matrix.explicit-commitish }}
         generate-release-notes: ${{ matrix.generate }}
+
+    - name: Create GitHub attestation
+      uses: actions/attest-build-provenance@897ed5eab6ed058a474202017ada7f40bfa52940 # v1.0.0 
+      with:
+        subject-path: "Lib.fs"
+
+    - name: Create bundle
+      id: attestation-bundle
+      env:
+        GH_TOKEN: ${{ github.token }}
+        ATT_OUTPUT: /tmp/attestation-Lib.fs
+      run: |
+        gh attestation download Lib.fs -R "${{ github.repository }}" > "$ATT_OUTPUT"
+        echo "outfile=$ATT_OUTPUT" >> "$GITHUB_OUTPUT"
+
+    - name: Release attestation
+      uses: Smaug123/gr-common-actions/github-release@5590e3d69c97b98b7af2b807e3514a914ded4ca4
+      with:
+        tag: ${{ steps.tag.outputs.tag }}
+        target-commitish: ${{ matrix.explicit-commitish }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        generate-release-notes: false
+        binary-contents: ${{ steps.attestation-bundle.outputs.outfile }}
