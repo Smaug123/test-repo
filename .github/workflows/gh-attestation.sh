@@ -11,5 +11,6 @@ if [ "$file_count" -ne "1" ]; then
 fi
 
 written_file="${files[0]}"
+mkdir -p "$(dirname "$ATT_OUTPUT")"
 mv "$written_file" "$ATT_OUTPUT"
 echo "outfile=$ATT_OUTPUT" >> "$GITHUB_OUTPUT"
