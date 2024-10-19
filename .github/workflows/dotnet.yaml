@@ -30,77 +30,78 @@ jobs:
       contents: write
       actions: write
 
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Restore dependencies
-      if: always()
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore --configuration Release
-    - name: Test
-      run: dotnet test --no-build --verbosity normal --configuration Release
-    - name: Pack
-      run: dotnet pack
-    - name: Tag
-      id: tag
-      env:
-        TAG_EXISTS: ${{ matrix.tag-exists }}
-      run: |
-        TAG_NAME=$(basename $(mktemp -t tmp.XXXXXXXX))
-        if [[ "$TAG_EXISTS" = "true" ]]; then
-          git tag "$TAG_NAME" && git push --tags --force
-        fi
-        echo "tag=$TAG_NAME" >> "$GITHUB_OUTPUT"
-
-    - name: GitHub release (no binary contents)
-      if: ${{ matrix.generate == false || matrix.explicit-commitish }}
-      uses: Smaug123/gr-common-actions/github-release@c48c55e1b71112769dd4157abdf962540b7d1ddd
-      with:
-        tag: ${{ steps.tag.outputs.tag }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        target-commitish: ${{ matrix.explicit-commitish }}
-        generate-release-notes: ${{ matrix.generate }}
-
-    - name: GitHub release (multi-line YAML binary contents)
-      if: ${{ matrix.generate == false || matrix.explicit-commitish }}
-      uses: Smaug123/gr-common-actions/github-release@c48c55e1b71112769dd4157abdf962540b7d1ddd
-      with:
-        tag: ${{ steps.tag.outputs.tag }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        target-commitish: ${{ matrix.explicit-commitish }}
-        generate-release-notes: ${{ matrix.generate }}
-        binary-contents: |
-          .gitignore
-          WoofWare.Test.Thing.fsproj
-
-    - name: GitHub release (canonical form)
-      if: ${{ matrix.generate == false || matrix.explicit-commitish }}
-      uses: Smaug123/gr-common-actions/github-release@c48c55e1b71112769dd4157abdf962540b7d1ddd
-      with:
-        tag: ${{ steps.tag.outputs.tag }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        target-commitish: ${{ matrix.explicit-commitish }}
-        generate-release-notes: ${{ matrix.generate }}
-        binary-contents: "[\"README.md\",\".github/workflows/dotnet.yaml\"]"
-
-    - name: Create GitHub attestation
-      uses: actions/attest-build-provenance@897ed5eab6ed058a474202017ada7f40bfa52940 # v1.0.0 
-      with:
-        subject-path: "Lib.fs"
-
-    - name: Create bundle
-      id: attestation-bundle
-      env:
-        GH_TOKEN: ${{ github.token }}
-        ATT_OUTPUT: /tmp/attestation-Lib.fs.jsonl
-        GH_REPOSITORY: ${{ github.repository }}
-      run: bash ./.github/workflows/gh-attestation.sh
-
-    - name: Release attestation (single string binary contents)
-      uses: Smaug123/gr-common-actions/github-release@c48c55e1b71112769dd4157abdf962540b7d1ddd
-      with:
-        tag: ${{ steps.tag.outputs.tag }}
-        target-commitish: ${{ matrix.explicit-commitish }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        generate-release-notes: false
-        binary-contents: ${{ steps.attestation-bundle.outputs.outfile }}
+      - uses: actions/checkout@v4
+      - name: Restore dependencies
+        if: always()
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+      - name: Test
+        run: dotnet test --no-build --verbosity normal --configuration Release
+      - name: Pack
+        run: dotnet pack
+      - name: Tag
+        id: tag
+        env:
+          TAG_EXISTS: ${{ matrix.tag-exists }}
+        run: |
+          TAG_NAME=$(basename $(mktemp -t tmp.XXXXXXXX))
+          if [[ "$TAG_EXISTS" = "true" ]]; then
+            git tag "$TAG_NAME" && git push --tags --force
+          fi
+          echo "tag=$TAG_NAME" >> "$GITHUB_OUTPUT"
+      
+      - name: GitHub release (no binary contents)
+        if: ${{ matrix.generate == false || matrix.explicit-commitish }}
+        uses: Smaug123/gr-common-actions/github-release@5e5d1ba104ed4917b4c547f01482a3a4ed6c6ecd
+        with:
+          tag: ${{ steps.tag.outputs.tag }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          target-commitish: ${{ matrix.explicit-commitish }}
+          generate-release-notes: ${{ matrix.generate }}
+      
+      - name: GitHub release (multi-line YAML binary contents)
+        if: ${{ matrix.generate == false || matrix.explicit-commitish }}
+        uses: Smaug123/gr-common-actions/github-release@5e5d1ba104ed4917b4c547f01482a3a4ed6c6ecd
+        with:
+          tag: ${{ steps.tag.outputs.tag }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          target-commitish: ${{ matrix.explicit-commitish }}
+          generate-release-notes: ${{ matrix.generate }}
+          binary-contents: |
+            .gitignore
+            WoofWare.Test.Thing.fsproj
+      
+      - name: GitHub release (canonical form)
+        if: ${{ matrix.generate == false || matrix.explicit-commitish }}
+        uses: Smaug123/gr-common-actions/github-release@5e5d1ba104ed4917b4c547f01482a3a4ed6c6ecd
+        with:
+          tag: ${{ steps.tag.outputs.tag }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          target-commitish: ${{ matrix.explicit-commitish }}
+          generate-release-notes: ${{ matrix.generate }}
+          binary-contents: "[\"README.md\",\".github/workflows/dotnet.yaml\"]"
+      
+      - name: Create GitHub attestation
+        uses: actions/attest-build-provenance@897ed5eab6ed058a474202017ada7f40bfa52940 # v1.0.0 
+        with:
+          subject-path: "Lib.fs"
+      
+      - name: Create bundle
+        id: attestation-bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ATT_OUTPUT: out/attestation-Lib.fs.jsonl
+          GH_REPOSITORY: ${{ github.repository }}
+        run: bash ./.github/workflows/gh-attestation.sh
+      
+      - name: Release attestation (single string binary contents)
+        uses: Smaug123/gr-common-actions/github-release@5e5d1ba104ed4917b4c547f01482a3a4ed6c6ecd
+        with:
+          tag: ${{ steps.tag.outputs.tag }}
+          target-commitish: ${{ matrix.explicit-commitish }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          generate-release-notes: false
+          binary-contents: ${{ steps.attestation-bundle.outputs.outfile }}
