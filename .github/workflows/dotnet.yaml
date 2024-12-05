@@ -55,7 +55,7 @@ jobs:
       
       - name: GitHub release (no binary contents)
         if: ${{ matrix.generate == false || matrix.explicit-commitish }}
-        uses: Smaug123/gr-common-actions/github-release@5e5d1ba104ed4917b4c547f01482a3a4ed6c6ecd
+        uses: Smaug123/gr-common-actions/github-release@dbc93acbf0f3477131a7a0337380804ed13ed795
         with:
           tag: ${{ steps.tag.outputs.tag }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -64,7 +64,7 @@ jobs:
       
       - name: GitHub release (multi-line YAML binary contents)
         if: ${{ matrix.generate == false || matrix.explicit-commitish }}
-        uses: Smaug123/gr-common-actions/github-release@5e5d1ba104ed4917b4c547f01482a3a4ed6c6ecd
+        uses: Smaug123/gr-common-actions/github-release@dbc93acbf0f3477131a7a0337380804ed13ed795
         with:
           tag: ${{ steps.tag.outputs.tag }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -73,16 +73,6 @@ jobs:
           binary-contents: |
             .gitignore
             WoofWare.Test.Thing.fsproj
-      
-      - name: GitHub release (canonical form)
-        if: ${{ matrix.generate == false || matrix.explicit-commitish }}
-        uses: Smaug123/gr-common-actions/github-release@5e5d1ba104ed4917b4c547f01482a3a4ed6c6ecd
-        with:
-          tag: ${{ steps.tag.outputs.tag }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          target-commitish: ${{ matrix.explicit-commitish }}
-          generate-release-notes: ${{ matrix.generate }}
-          binary-contents: "[\"README.md\",\".github/workflows/dotnet.yaml\"]"
       
       - name: Create GitHub attestation
         uses: actions/attest-build-provenance@897ed5eab6ed058a474202017ada7f40bfa52940 # v1.0.0 
@@ -98,7 +88,7 @@ jobs:
         run: bash ./.github/workflows/gh-attestation.sh
       
       - name: Release attestation (single string binary contents)
-        uses: Smaug123/gr-common-actions/github-release@5e5d1ba104ed4917b4c547f01482a3a4ed6c6ecd
+        uses: Smaug123/gr-common-actions/github-release@dbc93acbf0f3477131a7a0337380804ed13ed795
         with:
           tag: ${{ steps.tag.outputs.tag }}
           target-commitish: ${{ matrix.explicit-commitish }}
