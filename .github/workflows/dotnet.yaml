@@ -33,9 +33,13 @@ jobs:
       run: dotnet test --no-build --verbosity normal --configuration Release
     - name: Pack
       run: dotnet pack
-    - name: Publish NuGet package
-      uses: Smaug123/gr-common-actions/publish-nuget@417df35978822a71622a4ccfd84a1cad3fbf33b8
+    - name: Locate nupkg
+      id: locate-nupkg
+      run: echo "output=$(find . -type f -name '*.nupkg')" > $GITHUB_OUTPUT
+    - name: Release
+      uses: G-Research/common-actions/github-release@326df53568469a96340345e5057b578a6a1b9a34
       with:
-        package-name: WoofWare.Test.Thing
-        nuget-key: ${{ secrets.NUGET_API_KEY }}
-        nupkg-dir: bin/Release/
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        target-commitish: ${{ github.sha }}
+        tag: test-tag
+        binary-contents: ${{ steps.locate-nupkg.outputs.output }}
