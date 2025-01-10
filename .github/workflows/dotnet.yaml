@@ -41,5 +41,5 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         target-commitish: ${{ github.sha }}
-        tag: test-tag
+        tag: test-tag-2
         binary-contents: ${{ steps.locate-nupkg.outputs.output }}
