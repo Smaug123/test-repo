@@ -37,9 +37,9 @@ jobs:
       id: locate-nupkg
       run: echo "output=$(find . -type f -name '*.nupkg')" > $GITHUB_OUTPUT
     - name: Release
-      uses: G-Research/common-actions/github-release@7c1357eb7f5ed31d5e1c3955f730ee370ea07231
+      uses: G-Research/common-actions/github-release@84f4dda41e8834eb14e68b81f8d601e34698e571
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         target-commitish: ${{ github.sha }}
-        tag: test-tag-2
+        tag: test-tag-3
         binary-contents: ${{ steps.locate-nupkg.outputs.output }}
